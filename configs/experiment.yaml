@@ -1,0 +1,59 @@
+# Global Experiment Configuration for Fodripio
+# Phase 0 setup
+
+experiment:
+  name: "fodripio_base_experiment"
+  seed: 42
+  horizon: 14  # Planning horizon H in days
+
+data:
+  raw_path: "data/raw/demand_raw.csv"
+  processed_path: "data/processed/demand_processed.csv"
+  synthetic_path: "data/synthetic/demand_synthetic.csv"
+  start_date: "2024-01-01"
+  end_date: "2025-12-31"
+  frequency: "D"
+
+products:
+  - id: "P1"
+    name: "Standard Bracket A"
+    base_demand: 120.0
+    trend: 0.05
+    weekly_seasonality: true
+    annual_seasonality: true
+  - id: "P2"
+    name: "Premium Housing B"
+    base_demand: 80.0
+    trend: 0.02
+    weekly_seasonality: true
+    annual_seasonality: true
+  - id: "P3"
+    name: "Compact Gear C"
+    base_demand: 200.0
+    trend: -0.01
+    weekly_seasonality: true
+    annual_seasonality: false
+  - id: "P4"
+    name: "Heavy Shaft D"
+    base_demand: 50.0
+    trend: 0.08
+    weekly_seasonality: true
+    annual_seasonality: true
+  - id: "P5"
+    name: "Custom Valve E"
+    base_demand: 30.0
+    trend: 0.00
+    weekly_seasonality: false
+    annual_seasonality: false
+
+costs:
+  # Operational cost assumptions (unit cost values)
+  holding_cost_per_unit_day: 1.50
+  shortage_cost_per_unit_day: 15.00
+  setup_cost_per_batch: 200.00
+  overtime_cost_per_hour: 45.00
+
+validation:
+  train_ratio: 0.70
+  val_ratio: 0.15
+  test_ratio: 0.15
