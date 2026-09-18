@@ -1,9 +1,9 @@
 # Fodripio — Forecast-Driven Production Planning & Inventory Optimization Under Uncertain Demand
 
-[![Phase 0 Completed](https://img.shields.io/badge/Phase_0-Data_Foundation_Complete-brightgreen)](#)
+[![Phase 1 Completed](https://img.shields.io/badge/Phase_1-Demand_Understanding_Complete-brightgreen)](#)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](#)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Build Status](https://img.shields.io/badge/tests-4%20passed-success)](#)
+[![Build Status](https://img.shields.io/badge/tests-7%20passed-success)](#)
 
 ---
 
@@ -59,8 +59,8 @@ The project is being developed across 10 structured phases detailed in [`Impleme
 | Phase | Module / Feature Set | Key Capabilities & Deliverables | Status |
 | :---: | :--- | :--- | :---: |
 | **0** | **Data Foundation & Setup** | Reproducible synthetic demand generator, data ingestion (`DataLoader`), clean repo structure, unit tests. | **Completed** |
-| **1** | **Demand Data Understanding** | Per-product distribution analysis, stationarity tests (ADF/KPSS), seasonality decomposition, non-leaking feature builder. | *Next Phase* |
-| **2** | **Forecasting Baselines** | Naïve, seasonal naïve, moving average, Exponential Smoothing (ETS), SARIMA pipelines with strict rolling-origin validation. | *Planned* |
+| **1** | **Demand Data Understanding** | Per-product distribution analysis, stationarity tests (ADF/KPSS), seasonality decomposition, non-leaking feature builder (`FeatureEngineer`). | **Completed** |
+| **2** | **Forecasting Baselines** | Naïve, seasonal naïve, moving average, Exponential Smoothing (ETS), SARIMA pipelines with strict rolling-origin validation. | *Next Phase* |
 | **3** | **Machine Learning Forecasting** | XGBoost, LightGBM, Random Forest forecasters with rolling temporal cross-validation. | *Planned* |
 | **4** | **Production Optimization Model** | Mathematical programming model in **OR-Tools CP-SAT** solving production quantities, inventory, backlog, setup times, and machine capacity. | *Planned* |
 | **5** | **Forecast → Optimization Integration** | Closed-loop pipeline linking demand forecasts directly into the production optimizer. | *Planned* |
