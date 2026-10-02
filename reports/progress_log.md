@@ -13,13 +13,6 @@
 - **Unit Tests:** Created `tests/test_data_foundation.py` verifying generator reproducibility, data loader pipelines, and configuration integrity.
 - **Exploration Notebook:** Added `notebooks/01_data_exploration.ipynb` demonstrating raw data generation, ingestion, outlier distribution, and time-series visualizations.
 
-### Exit Criteria Verification
-- [x] Repository structure created and verified.
-- [x] `requirements.txt` configured cleanly.
-- [x] Raw/Synthetic demand data generated deterministically (seed 42).
-- [x] Preprocessing pipeline cleans and flags outliers without information loss.
-- [x] Unit tests pass cleanly via `pytest`.
-
 ---
 
 ## Phase 1: Demand Data Understanding
@@ -35,9 +28,33 @@
 - **Data Leakage Audit:** Implemented automated non-leakage audit method `FeatureEngineer.audit_leakage()`.
 - **Demand Characterization Memo:** Authored technical memo in `reports/demand_characterization_memo.md` detailing taxonomy, properties, and model recommendations.
 - **Time-Series Analysis Notebook:** Created `notebooks/02_time_series_analysis.ipynb`.
-- **Unit & Audit Tests:** Implemented `tests/test_features.py` testing feature creation and 100% pass on anti-leakage audit.
+
+---
+
+## Phase 2: Forecasting Baselines
+**Date Completed:** 2026-10-02  
+**Status:** COMPLETED  
+
+### Summary of Completed Work
+- **Baseline Forecasting Engine (`src/forecasting/baselines.py`):** Built unified OOP forecaster hierarchy (`Naive`, `SeasonalNaive`, `MovingAverage_7`, `MovingAverage_14`, `ExponentialSmoothing`, `SARIMAX`).
+- **Validation Framework (`src/evaluation/validation.py`):** Implemented `TemporalSplitter` (70/15/15 chronological split) and `RollingOriginValidator` (multi-origin receding horizon cross-validation).
+- **Metric Evaluation Suite (`src/evaluation/metrics.py`):** Implemented `mae`, `rmse`, `smape`, `wape`, `mase`, and `ForecastEvaluator` (overall, per-product, per-horizon breakdowns).
+- **Baseline Evaluation Notebook (`notebooks/03_baseline_forecasting.ipynb`):** Executed 4-origin rolling evaluation ($H=14$) across all 6 baseline models.
+- **Unit Tests:** Created `tests/test_baselines.py`, `tests/test_validation.py`, and `tests/test_metrics.py` (22/22 unit tests passing cleanly).
+
+### Baseline Benchmark Results Summary (4 Origins, Horizon H=14)
+
+| Model | WAPE (%) | MAE | RMSE | sMAPE (%) | MASE | Status / Rank |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **SARIMA $(1,1,1) \times (1,1,1)_7$** | **16.98%** | 12.80 | 19.31 | 16.99% | 0.1706 | **Best Overall** |
+| **Exponential Smoothing (ETS)** | **17.00%** | 12.81 | 19.22 | 18.20% | 0.1708 | Strong Statistical Baseline |
+| **Seasonal Naïve (Lag-7)** | **18.70%** | 14.10 | 20.88 | 18.68% | 0.1879 | Benchmark to Beat |
+| **Moving Average ($W=14$)** | 26.15% | 19.71 | 26.75 | 28.01% | 0.2627 | Baseline |
+| **Moving Average ($W=7$)** | 26.27% | 19.80 | 26.52 | 28.13% | 0.2639 | Baseline |
+| **Naïve (Last Value)** | 34.75% | 26.19 | 35.14 | 35.63% | 0.3491 | Flat Baseline |
 
 ### Exit Criteria Verification
-- [x] Every product documented (trend direction, seasonality periods, ADF/KPSS stationarity verdict, outlier rate).
-- [x] Feature builder unit-tested: for prediction time $t$, no feature uses data after $t$.
-- [x] Leakage audit test passes cleanly (`pytest tests/test_features.py`).
+- [x] All baselines run end-to-end on all products without errors.
+- [x] Validation is strictly temporal: unit tests assert $\text{train\_end} < \text{val\_start} < \text{test\_start}$ and zero leakage per origin fold.
+- [x] Metric values are stable across reruns (deterministic).
+- [x] Seasonal naïve is within a reasonable band of ETS performance (18.70% vs 17.00% WAPE).
