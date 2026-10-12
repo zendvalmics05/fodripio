@@ -1,0 +1,9 @@
+model_class: LightGBMForecaster
+target_metric: WAPE
+best_score: 15.51
+best_params:
+  n_estimators: 120
+  learning_rate: 0.08
+  max_depth: 4
+horizon: 14
+n_splits: 3

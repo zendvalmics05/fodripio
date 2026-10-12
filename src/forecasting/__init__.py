@@ -1,6 +1,6 @@
 """
 Forecasting module package.
-Contains baseline and machine learning forecasting models.
+Contains baseline and machine learning forecasting models and tuning utilities.
 """
 
 from src.forecasting.baselines import (
@@ -11,6 +11,13 @@ from src.forecasting.baselines import (
     ExponentialSmoothingForecaster,
     SARIMAForecaster,
 )
+from src.forecasting.ml_models import (
+    BaseMLForecaster,
+    RandomForestForecaster,
+    XGBoostForecaster,
+    LightGBMForecaster,
+)
+from src.forecasting.tuning import TimeSeriesTuner
 
 __all__ = [
     "BaseForecaster",
@@ -19,4 +26,9 @@ __all__ = [
     "MovingAverageForecaster",
     "ExponentialSmoothingForecaster",
     "SARIMAForecaster",
+    "BaseMLForecaster",
+    "RandomForestForecaster",
+    "XGBoostForecaster",
+    "LightGBMForecaster",
+    "TimeSeriesTuner",
 ]

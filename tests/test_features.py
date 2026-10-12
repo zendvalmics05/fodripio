@@ -1,11 +1,12 @@
 """
-Unit tests and leakage audit tests for FeatureEngineer module.
+Unit tests and leakage audit tests for FeatureEngineer and SupervisedDatasetBuilder modules.
 """
 
 import pandas as pd
+import numpy as np
 import pytest
 from src.data.synthetic import SyntheticDemandGenerator
-from src.data.features import FeatureEngineer
+from src.data.features import FeatureEngineer, SupervisedDatasetBuilder
 
 
 @pytest.fixture
@@ -48,3 +49,32 @@ def test_lag_values_correctness(sample_demand_data):
         actual_lag_1 = p1_df.loc[i, "demand_lag_1"]
         expected_demand = p1_df.loc[i - 1, "demand"]
         assert actual_lag_1 == expected_demand, f"Lag 1 mismatch at index {i}: {actual_lag_1} != {expected_demand}"
+
+
+def test_supervised_dataset_builder_direct(sample_demand_data):
+    builder = SupervisedDatasetBuilder()
+    X, y, meta_df = builder.build_dataset(sample_demand_data, horizon_step=7, mode="direct")
+
+    assert isinstance(X, pd.DataFrame)
+    assert isinstance(y, pd.Series)
+    assert isinstance(meta_df, pd.DataFrame)
+
+    assert len(X) == len(y) == len(meta_df)
+    assert X.isna().sum().sum() == 0
+    assert y.isna().sum() == 0
+
+    # One-hot encoding check
+    assert "product_P1" in X.columns
+
+    # Alignment check
+    is_aligned = builder.audit_supervised_alignment(sample_demand_data, X, y, meta_df)
+    assert is_aligned, "SupervisedDatasetBuilder failed temporal alignment audit!"
+
+
+def test_supervised_dataset_builder_recursive(sample_demand_data):
+    builder = SupervisedDatasetBuilder()
+    X, y, meta_df = builder.build_dataset(sample_demand_data, mode="recursive")
+
+    assert len(X) == len(y) == len(meta_df)
+    assert (meta_df["horizon_step"] == 1).all()
+    assert X.isna().sum().sum() == 0

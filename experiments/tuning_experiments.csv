@@ -1,0 +1,9 @@
+trial_id,model_class,duration_sec,n_estimators,learning_rate,max_depth,MAE,RMSE,sMAPE,WAPE,MASE
+7,LightGBMForecaster,5.74,120,0.08,4,11.5474,17.5592,16.0,15.51,0.1539
+8,LightGBMForecaster,8.15,120,0.08,6,11.7094,17.6762,16.08,15.72,0.1561
+3,LightGBMForecaster,5.61,60,0.08,4,11.9952,17.8746,16.96,16.11,0.1599
+4,LightGBMForecaster,6.97,60,0.08,6,12.0128,17.8865,16.91,16.13,0.1601
+6,LightGBMForecaster,9.33,120,0.03,6,12.0956,17.7387,17.69,16.24,0.1612
+5,LightGBMForecaster,6.79,120,0.03,4,12.4216,18.229,18.12,16.68,0.1656
+2,LightGBMForecaster,7.36,60,0.03,6,15.4652,19.698,26.6,20.77,0.2062
+1,LightGBMForecaster,7.07,60,0.03,4,15.799,20.204,27.08,21.22,0.2106

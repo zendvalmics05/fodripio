@@ -148,3 +148,118 @@ class FeatureEngineer:
         except AssertionError as e:
             print("LEAKAGE AUDIT FAILED:", e)
             return False
+
+
+class SupervisedDatasetBuilder:
+    """
+    Transforms panel demand DataFrame into leak-free tabular supervised learning matrices (X, y, meta_df).
+    Supports direct multi-step forecasting (t -> t+h) and recursive forecasting (t -> t+1).
+    """
+
+    def __init__(
+        self,
+        feature_engineer: Optional[FeatureEngineer] = None,
+        encode_categories: bool = True,
+        target_col: str = "demand",
+        date_col: str = "date",
+        group_col: str = "product_id",
+    ):
+        self.feature_engineer = feature_engineer or FeatureEngineer(
+            target_col=target_col, date_col=date_col, group_col=group_col
+        )
+        self.encode_categories = encode_categories
+        self.target_col = target_col
+        self.date_col = date_col
+        self.group_col = group_col
+
+    def build_dataset(
+        self,
+        df: pd.DataFrame,
+        horizon_step: int = 1,
+        mode: str = "direct",
+    ) -> Tuple[pd.DataFrame, pd.Series, pd.DataFrame]:
+        """
+        Builds (X, y, meta_df) tuple.
+
+        Args:
+            df (pd.DataFrame): Panel demand DataFrame.
+            horizon_step (int): Target forecast step h (default 1).
+            mode (str): "direct" (predict t+horizon_step) or "recursive" (predict t+1).
+
+        Returns:
+            Tuple[pd.DataFrame, pd.Series, pd.DataFrame]: (X, y, meta_df)
+        """
+        if mode not in ("direct", "recursive"):
+            raise ValueError(f"Unknown mode '{mode}'. Must be 'direct' or 'recursive'.")
+
+        step_shift = horizon_step if mode == "direct" else 1
+
+        # 1. Generate leak-free temporal features
+        df_feat = self.feature_engineer.create_features(df)
+
+        # 2. Shift target demand to create y_{t+step_shift} for each product
+        df_feat["target_demand"] = df_feat.groupby(self.group_col)[self.target_col].shift(-step_shift)
+        df_feat["target_date"] = df_feat.groupby(self.group_col)[self.date_col].shift(-step_shift)
+
+        # 3. Drop warmup rows (NaNs in features) and future boundary rows (NaNs in target)
+        feature_cols = self.feature_engineer.feature_cols
+        all_required_cols = feature_cols + ["target_demand", "target_date"]
+        df_clean = df_feat.dropna(subset=all_required_cols).copy().reset_index(drop=True)
+
+        # 4. Separate feature matrix X, target y, and metadata DataFrame
+        X = df_clean[feature_cols].copy()
+
+        # One-hot encode product_id
+        if self.encode_categories:
+            product_dummies = pd.get_dummies(df_clean[self.group_col], prefix="product", dtype=float)
+            X = pd.concat([X, product_dummies], axis=1)
+
+        y = df_clean["target_demand"].copy()
+        y.name = "target"
+
+        meta_df = pd.DataFrame({
+            "feature_date": df_clean[self.date_col],
+            "target_date": df_clean["target_date"],
+            self.group_col: df_clean[self.group_col],
+            "horizon_step": step_shift if mode == "direct" else 1,
+        })
+
+        return X, y, meta_df
+
+    def audit_supervised_alignment(
+        self,
+        original_df: pd.DataFrame,
+        X: pd.DataFrame,
+        y: pd.Series,
+        meta_df: pd.DataFrame,
+    ) -> bool:
+        """
+        Audit test asserting that every target y[i] equals actual demand at meta_df['target_date'][i].
+
+        Returns:
+            bool: True if alignment is 100% correct.
+        """
+        orig_copy = original_df.copy()
+        orig_copy[self.date_col] = pd.to_datetime(orig_copy[self.date_col])
+
+        # Merge meta_df + y back to original demand to verify exact values
+        audit_df = meta_df.copy()
+        audit_df["target_y"] = y.values
+
+        merged = pd.merge(
+            audit_df,
+            orig_copy[[self.date_col, self.group_col, self.target_col]],
+            left_on=["target_date", self.group_col],
+            right_on=[self.date_col, self.group_col],
+            how="inner",
+        )
+
+        diff = np.abs(merged["target_y"].values - merged[self.target_col].values)
+        max_diff = float(np.max(diff))
+
+        if max_diff > 1e-5:
+            print(f"SUPERVISED ALIGNMENT AUDIT FAILED! Max diff: {max_diff}")
+            return False
+
+        return True
+
